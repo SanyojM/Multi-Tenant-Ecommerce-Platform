@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:3003"
+const BASE_URL = "https://ecommerce-backend.softricity.in"
 
 export const URLS = {
     GET_ALL_CATEGORIES: (storeId: string) => `${BASE_URL}/category/${storeId}`,
