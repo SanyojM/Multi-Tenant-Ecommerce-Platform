@@ -72,6 +72,16 @@ export class UpdateProductDto {
     @IsOptional()
     @IsArray()
     @IsString({ each: true })
+    @Transform(({ value }) => {
+        if (typeof value === 'string') {
+            try {
+                return JSON.parse(value);
+            } catch {
+                return [value];
+            }
+        }
+        return Array.isArray(value) ? value : [];
+    })
     removeImages?: string[]; // URLs of images to remove
 
     @IsOptional()

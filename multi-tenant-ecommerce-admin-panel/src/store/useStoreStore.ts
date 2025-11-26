@@ -23,7 +23,7 @@ type StoreState = {
   setSelectedStore: (store: Store | null) => void
 }
 
-const BASE_URL = "http://localhost:3003"
+const BASE_URL = "https://ecommerce-backend.softricity.in"
 
 export const useStoreStore = create<StoreState>()(
   persist(
