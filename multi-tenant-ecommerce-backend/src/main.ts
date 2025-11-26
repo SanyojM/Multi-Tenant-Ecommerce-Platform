@@ -22,7 +22,7 @@ async function bootstrap() {
 
   app.enableCors({
     origin:whitelist,
-    method: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true, // if using cookies/auth headers
   })
 
