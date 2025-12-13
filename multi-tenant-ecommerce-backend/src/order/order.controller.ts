@@ -43,4 +43,13 @@ export class OrderController {
   cancelOrder(@Param('id') id: string) {
     return this.orderService.cancelOrder(id);
   }
+
+  @UsePipes(ValidationPipe)
+  @Post(':id/status')
+  updateOrderStatus(
+    @Param('id') id: string,
+    @Body() body: { status: string },
+  ) {
+    return this.orderService.updateOrderStatus(id, body.status);
+  }
 }

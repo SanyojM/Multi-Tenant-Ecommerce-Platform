@@ -11,13 +11,13 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const host = context.req?.headers?.host;
   
   try {
-    const storeResponse = await axios.get(`http://localhost:3003/store/domain/${host}`);
+    const storeResponse = await axios.get(`http://localhost:4004/store/domain/${host}`);
     const store = storeResponse.data;
     
-    const categoryResponse = await axios.get(`http://localhost:3003/category/id/${id}`);
+    const categoryResponse = await axios.get(`http://localhost:4004/category/id/${id}`);
     const category = categoryResponse.data;
     
-    const productsResponse = await axios.get(`http://localhost:3003/product/category/${id}`);
+    const productsResponse = await axios.get(`http://localhost:4004/product/category/${id}`);
     const products = productsResponse.data;
     
     return { props: { store, category, products } };

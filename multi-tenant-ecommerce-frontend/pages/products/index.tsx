@@ -10,13 +10,13 @@ import { useAuthStore } from '../../store/useAuthStore';
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const host = context.req?.headers?.host;
   try {
-    const storeResponse = await axios.get(`http://localhost:3003/store/domain/${host}`);
+    const storeResponse = await axios.get(`http://localhost:4004/store/domain/${host}`);
     const store = storeResponse.data;
     
-    const productsResponse = await axios.get(`http://localhost:3003/product/store/${store.id}`);
+    const productsResponse = await axios.get(`http://localhost:4004/product/store/${store.id}`);
     const products = productsResponse.data;
     
-    const categoriesResponse = await axios.get(`http://localhost:3003/category/${store.id}`);
+    const categoriesResponse = await axios.get(`http://localhost:4004/category/${store.id}`);
     const categories = categoriesResponse.data;
     
     return {
@@ -40,10 +40,10 @@ export default function ProductsPage({ store, products: initialProducts, categor
     
     try {
       if (categoryId) {
-        const response = await axios.get(`http://localhost:3003/product/category/${categoryId}`);
+        const response = await axios.get(`http://localhost:4004/product/category/${categoryId}`);
         setProducts(response.data);
       } else {
-        const response = await axios.get(`http://localhost:3003/product/store/${store.id}`);
+        const response = await axios.get(`http://localhost:4004/product/store/${store.id}`);
         setProducts(response.data);
       }
     } catch (error) {

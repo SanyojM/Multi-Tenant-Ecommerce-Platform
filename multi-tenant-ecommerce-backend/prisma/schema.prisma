@@ -85,19 +85,29 @@ model CartItem {
 }
 
 model Order {
-  id          String   @id @default(cuid())
+  id          String      @id @default(cuid())
   userId      String
   storeId     String
   totalAmount Float
-  createdAt   DateTime @default(now())
+  status      OrderStatus @default(PENDING)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
   paymentId   String?
 
-  payment   Payment?   @relation("OrderPayment")
+  payment   Payment?    @relation("OrderPayment")
   user      User        @relation(fields: [userId], references: [id])
   store     Store       @relation(fields: [storeId], references: [id])
   items     OrderItem[]
   addressId String?
   address   Address?    @relation(fields: [addressId], references: [id])
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
 }
 
 model OrderItem {
@@ -153,14 +163,21 @@ enum DomainStatus {
 }
 
 model StoreAdmin {
-  id       String @id @default(cuid())
-  email    String
-  password String
-  storeId  String
+  id        String         @id @default(cuid())
+  email     String         @unique
+  password  String
+  name      String?
+  role      AdminRole      @default(STORE_OWNER)
+  storeId   String?
+  
+  store     Store?         @relation(fields: [storeId], references: [id])
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
 
-  store     Store    @relation(fields: [storeId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum AdminRole {
+  SUPER_ADMIN
+  STORE_OWNER
 }
 
 model Payment {

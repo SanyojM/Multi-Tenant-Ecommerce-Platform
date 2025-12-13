@@ -18,7 +18,7 @@ export type Order = {
   userId: string
   storeId: string
   totalAmount: number
-  status: string
+  status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED'
   createdAt: string
   updatedAt: string
   user: {
@@ -54,9 +54,10 @@ type OrderState = {
   fetchStoreOrders: (storeId: string) => Promise<void>
   getOrderById: (id: string) => Promise<Order | null>
   cancelOrder: (id: string) => Promise<void>
+  updateOrderStatus: (id: string, status: string) => Promise<void>
 }
 
-const BASE_URL = "http://localhost:3003"
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
 
 export const useOrderStore = create<OrderState>((set) => ({
   orders: [],
@@ -91,6 +92,22 @@ export const useOrderStore = create<OrderState>((set) => ({
       await axios.delete(`${BASE_URL}/order/${id}`)
       set((state) => ({
         orders: state.orders.filter((order) => order.id !== id),
+        loading: false
+      }))
+    } catch (err: any) {
+      set({ error: err.response?.data?.message || err.message, loading: false })
+      throw err
+    }
+  },
+
+  updateOrderStatus: async (id, status) => {
+    set({ loading: true, error: null })
+    try {
+      const { data } = await axios.post(`${BASE_URL}/order/${id}/status`, { status })
+      set((state) => ({
+        orders: state.orders.map((order) => 
+          order.id === id ? { ...order, status: data.status, updatedAt: data.updatedAt } : order
+        ),
         loading: false
       }))
     } catch (err: any) {

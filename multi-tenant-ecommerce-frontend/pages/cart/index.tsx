@@ -12,7 +12,7 @@ import Link from 'next/link';
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const host = context.req?.headers?.host;
   try {
-    const storeResponse = await axios.get(`http://localhost:3003/store/domain/${host}`);
+    const storeResponse = await axios.get(`http://localhost:4004/store/domain/${host}`);
     const store = storeResponse.data;
     return { props: { store } };
   } catch (error) {

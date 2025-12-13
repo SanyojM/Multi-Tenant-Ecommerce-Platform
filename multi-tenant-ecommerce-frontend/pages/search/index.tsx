@@ -13,13 +13,13 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const { q } = context.query;
   
   try {
-    const storeResponse = await axios.get(`http://localhost:3003/store/domain/${host}`);
+    const storeResponse = await axios.get(`http://localhost:4004/store/domain/${host}`);
     const store = storeResponse.data;
     
     let products = [];
     if (q && typeof q === 'string') {
       const productsResponse = await axios.get(
-        `http://localhost:3003/product/search/${store.id}?q=${encodeURIComponent(q)}`
+        `http://localhost:4004/product/search/${store.id}?q=${encodeURIComponent(q)}`
       );
       products = productsResponse.data;
     }

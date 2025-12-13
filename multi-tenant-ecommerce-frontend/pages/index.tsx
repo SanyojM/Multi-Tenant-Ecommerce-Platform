@@ -7,13 +7,13 @@ import { Button } from "@heroui/button";
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const host = context.req?.headers?.host;
   try {
-    const storeResponse = await axios.get(`http://localhost:3003/store/domain/${host}`);
+    const storeResponse = await axios.get(`http://localhost:4004/store/domain/${host}`);
     const storeData = storeResponse.data;
     
-    const categoriesResponse = await axios.get(`http://localhost:3003/category/${storeData.id}`);
+    const categoriesResponse = await axios.get(`http://localhost:4004/category/${storeData.id}`);
     const categories = categoriesResponse.data;
     
-    const productsResponse = await axios.get(`http://localhost:3003/product/store/${storeData.id}`);
+    const productsResponse = await axios.get(`http://localhost:4004/product/store/${storeData.id}`);
     const products = productsResponse.data;
     
     return {

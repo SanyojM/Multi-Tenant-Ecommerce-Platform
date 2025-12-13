@@ -196,4 +196,60 @@ export class OrderService {
       throw new HttpException(error.message || 'Failed to cancel order', 400);
     }
   }
+
+  async updateOrderStatus(orderId: string, status: string) {
+    try {
+      const validStatuses = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
+      
+      if (!validStatuses.includes(status)) {
+        throw new HttpException('Invalid order status', 400);
+      }
+
+      const order = await this.prismaService.order.findUnique({
+        where: { id: orderId },
+      });
+
+      if (!order) {
+        throw new HttpException('Order not found', 404);
+      }
+
+      // If changing to CANCELLED, restore stock
+      if (status === 'CANCELLED' && order.status !== 'CANCELLED') {
+        const orderWithItems = await this.prismaService.order.findUnique({
+          where: { id: orderId },
+          include: { items: true },
+        });
+
+        if (orderWithItems) {
+          for (const item of orderWithItems.items) {
+            await this.prismaService.product.update({
+              where: { id: item.productId },
+              data: {
+                stock: {
+                  increment: item.quantity,
+                },
+              },
+            });
+          }
+        }
+      }
+
+      return await this.prismaService.order.update({
+        where: { id: orderId },
+        data: { status: status as any },
+        include: {
+          items: {
+            include: {
+              product: true,
+            },
+          },
+          user: true,
+          payment: true,
+          address: true,
+        },
+      });
+    } catch (error) {
+      throw new HttpException(error.message || 'Failed to update order status', 400);
+    }
+  }
 }

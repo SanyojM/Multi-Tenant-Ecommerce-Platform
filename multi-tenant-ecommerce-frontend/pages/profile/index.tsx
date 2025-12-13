@@ -12,7 +12,7 @@ import { User as UserIcon, ShoppingBag, MapPin, LogOut } from 'lucide-react';
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const host = context.req?.headers?.host;
   try {
-    const storeResponse = await axios.get(`http://localhost:3003/store/domain/${host}`);
+    const storeResponse = await axios.get(`http://localhost:4004/store/domain/${host}`);
     const store = storeResponse.data;
     return { props: { store } };
   } catch (error) {
@@ -50,11 +50,11 @@ export default function ProfilePage({ store }: any) {
 
   const handleSave = async () => {
     try {
-      await axios.patch(`http://localhost:3003/user/${user!.id}`, formData);
+      await axios.patch(`http://localhost:4004/user/${user!.id}`, formData);
       alert('Profile updated successfully!');
       setEditing(false);
       // Update user in store
-      const response = await axios.get(`http://localhost:3003/user/${user!.id}`);
+      const response = await axios.get(`http://localhost:4004/user/${user!.id}`);
       useAuthStore.getState().setUser(response.data);
     } catch (error) {
       console.error('Error updating profile:', error);

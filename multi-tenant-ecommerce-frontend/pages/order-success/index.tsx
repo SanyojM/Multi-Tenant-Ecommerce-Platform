@@ -12,11 +12,11 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const { orderId } = context.query;
   
   try {
-    const storeResponse = await axios.get(`http://localhost:3003/store/domain/${host}`);
+    const storeResponse = await axios.get(`http://localhost:4004/store/domain/${host}`);
     const store = storeResponse.data;
     
     if (orderId) {
-      const orderResponse = await axios.get(`http://localhost:3003/order/${orderId}`);
+      const orderResponse = await axios.get(`http://localhost:4004/order/${orderId}`);
       const order = orderResponse.data;
       return { props: { store, order } };
     }

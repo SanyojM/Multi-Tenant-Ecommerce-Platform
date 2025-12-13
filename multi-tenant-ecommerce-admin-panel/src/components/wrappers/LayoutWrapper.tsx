@@ -2,6 +2,7 @@
 
 import React, { useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { LayoutDashboard, Settings, Box, User, Folder, LogOut, ShoppingCart, MessageCircle, Globe, Store } from 'lucide-react'
 import {
   Tooltip,
@@ -17,12 +18,20 @@ import {
 } from "@/components/ui/select"
 import { usePathname } from 'next/navigation'
 import { useStoreStore } from '@/store/useStoreStore'
+import { useAdminAuthStore } from '@/store/useAdminAuthStore'
 
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
+    const router = useRouter()
     const { stores, selectedStore, fetchStores, setSelectedStore } = useStoreStore()
+    const { admin, isAuthenticated, logout, selectedStoreId, setSelectedStore: setAdminSelectedStore } = useAdminAuthStore()
+    
+    const isSuperAdmin = admin?.role === 'SUPER_ADMIN'
+    const isStoreOwner = admin?.role === 'STORE_OWNER'
+    
     const urls = [
         { href: '/', icon: LayoutDashboard, name: 'Dashboard' },
-        { href: '/stores', icon: Store, name: 'Stores' },
+        // Only super admins can see stores page
+        ...(isSuperAdmin ? [{ href: '/stores', icon: Store, name: 'Stores' }] : []),
         { href: '/categories', icon: Folder, name: 'Categories' },
         { href: '/products', icon: Box, name: 'Products' },
         { href: '/orders', icon: ShoppingCart, name: 'Orders' },
@@ -34,8 +43,37 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
     const pathname = usePathname();
 
     useEffect(() => {
-        fetchStores()
-    }, [fetchStores]);
+        // Redirect to login if not authenticated
+        if (!isAuthenticated) {
+            router.push('/login')
+            return
+        }
+        
+        // Fetch stores for super admins
+        if (isSuperAdmin) {
+            fetchStores()
+        }
+        
+        // For store owners, set their store as selected
+        if (isStoreOwner && admin?.store) {
+            // Convert admin store to Store type for useStoreStore
+            const storeForState = {
+                id: admin.store.id,
+                name: admin.store.name,
+                domain: admin.store.domain || '',
+                domainStatus: (admin.store.domainStatus || 'PENDING') as 'PENDING' | 'ACTIVE' | 'INACTIVE',
+                createdAt: admin.store.createdAt || new Date().toISOString(),
+                updatedAt: admin.store.updatedAt || new Date().toISOString(),
+            };
+            setSelectedStore(storeForState)
+            setAdminSelectedStore(admin.store.id)
+        }
+    }, [isAuthenticated, isSuperAdmin, isStoreOwner, admin, router, fetchStores, setSelectedStore, setAdminSelectedStore]);
+
+    const handleLogout = () => {
+        logout()
+        router.push('/login')
+    }
   return (
     <div className='p-3'>
         <div className="flex gap-3">
@@ -61,50 +99,75 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
                     }
                     </div>
                 </div>
-                <span className='hover:bg-red-300 p-2 rounded-lg transition-colors duration-200'>
+                <span onClick={handleLogout} className='hover:bg-red-300 p-2 rounded-lg transition-colors duration-200 cursor-pointer'>
                     <LogOut className='w-5 h-5' />
                 </span>
             </div>
             <div className='flex-1 w-full h-[97vh] flex flex-col gap-3'>
-                {/* Store Selector */}
-                <div className="bg-white rounded-lg border p-4">
-                    <div className="flex items-center gap-4">
-                        <Store className="w-5 h-5 text-[#377b64]" />
-                        <div className="flex-1">
-                            <label className="text-sm font-medium text-gray-700 mb-1 block">
-                                Selected Store
-                            </label>
-                            <Select
-                                value={selectedStore?.id || ''}
-                                onValueChange={(value) => {
-                                    const store = stores.find(s => s.id === value)
-                                    setSelectedStore(store || null)
-                                }}
-                            >
-                                <SelectTrigger className="w-full max-w-md">
-                                    <SelectValue placeholder="Select a store" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {stores.map((store) => (
-                                        <SelectItem key={store.id} value={store.id}>
-                                            {store.name} ({store.domain})
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                {/* Store Selector - Only for Super Admins */}
+                {isSuperAdmin && (
+                    <div className="bg-white rounded-lg border p-4">
+                        <div className="flex items-center gap-4">
+                            <Store className="w-5 h-5 text-[#377b64]" />
+                            <div className="flex-1">
+                                <label className="text-sm font-medium text-gray-700 mb-1 block">
+                                    Selected Store
+                                </label>
+                                <Select
+                                    value={selectedStore?.id || ''}
+                                    onValueChange={(value) => {
+                                        const store = stores.find(s => s.id === value)
+                                        setSelectedStore(store || null)
+                                        setAdminSelectedStore(value)
+                                    }}
+                                >
+                                    <SelectTrigger className="w-full max-w-md">
+                                        <SelectValue placeholder="Select a store" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {stores.map((store) => (
+                                            <SelectItem key={store.id} value={store.id}>
+                                                {store.name} ({store.domain})
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            {!selectedStore && stores.length > 0 && (
+                                <div className="text-sm text-orange-600 font-medium">
+                                    Please select a store
+                                </div>
+                            )}
+                            {stores.length === 0 && (
+                                <div className="text-sm text-gray-600">
+                                    No stores available. <Link href="/stores" className="text-[#377b64] font-medium hover:underline">Create one</Link>
+                                </div>
+                            )}
                         </div>
-                        {!selectedStore && stores.length > 0 && (
-                            <div className="text-sm text-orange-600 font-medium">
-                                Please select a store
-                            </div>
-                        )}
-                        {stores.length === 0 && (
-                            <div className="text-sm text-gray-600">
-                                No stores available. <Link href="/stores" className="text-[#377b64] font-medium hover:underline">Create one</Link>
-                            </div>
-                        )}
                     </div>
-                </div>
+                )}
+
+                {/* Store Owner Info - Display only for Store Owners */}
+                {isStoreOwner && admin?.store && (
+                    <div className="bg-white rounded-lg border p-4">
+                        <div className="flex items-center gap-4">
+                            <Store className="w-5 h-5 text-[#377b64]" />
+                            <div className="flex-1">
+                                <label className="text-sm font-medium text-gray-700 mb-1 block">
+                                    Your Store
+                                </label>
+                                <div className="text-lg font-semibold text-[#377b64]">
+                                    {admin.store.name}
+                                </div>
+                            </div>
+                            {admin.name && (
+                                <div className="text-sm text-gray-600">
+                                    Welcome, <span className="font-medium">{admin.name}</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
                 
                 {/* Main Content */}
                 <div className='flex-1 overflow-y-auto'>

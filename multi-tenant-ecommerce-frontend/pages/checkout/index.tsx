@@ -17,7 +17,7 @@ declare global {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const host = context.req?.headers?.host;
   try {
-    const storeResponse = await axios.get(`http://localhost:3003/store/domain/${host}`);
+    const storeResponse = await axios.get(`http://localhost:4004/store/domain/${host}`);
     const store = storeResponse.data;
     return { props: { store } };
   } catch (error) {
@@ -86,7 +86,7 @@ export default function CheckoutPage({ store }: any) {
     setLoading(true);
     try {
       // Create address
-      const addressResponse = await axios.post('http://localhost:3003/address', {
+      const addressResponse = await axios.post('http://localhost:4004/address', {
         userId: user!.id,
         ...address,
       });
